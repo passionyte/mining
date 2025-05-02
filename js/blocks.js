@@ -25,8 +25,8 @@ export class Block {
 }
 
 export const Blocks = [
-    new Block("Dirt", 10, 1, -1, {color: "rgb(92, 64, 51)"}),
-
+    ["Dirt", 10, 1, -1, {color: "rgb(92, 64, 51)"}],
+    ["Stone", 15, 2, 4, {color: "rgb(140, 140, 140)"}],
 ]
 
 export function getBlock(nm) {
