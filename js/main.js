@@ -69,7 +69,8 @@ function randBlock() {
     let result = Blocks[0] // Dirt
 
     for (const b of Blocks) {
-        if (b.rarity != -1 && randInt(1, b.rarity) == 1) {
+        const r = b[3]
+        if (r != -1 && randInt(1, r) == 1) {
             result = b
             break
         }
@@ -167,4 +168,4 @@ function step() {
 }
 step()
 
-document.addEventListener("mousedown", mineBlock)
+CANVAS.addEventListener("mousedown", mineBlock)
