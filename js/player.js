@@ -5,9 +5,10 @@ export class Player {
     strength
     inventory
     mined
+    money = 0
 
     constructor(s = 1, i = {}, m = 0) {
-        this.strength = ((DEBUG) && 999) || s
+        this.strength = s//((DEBUG) && 999) || s
         this.inventory = i
         this.mined = m
 

@@ -18,14 +18,14 @@
     width: 100%
 }
 
-a {
+a, button {
     font-family: 'Courier New', Courier, monospace
 }
 
 .inv {
     background-color: rgb(150, 150, 150);
     display: block;
-    width: 18vw;
+    width: 24vw;
     aspect-ratio: 2/1;
     overflow-y: scroll;
 }
@@ -36,11 +36,19 @@ a {
     width: 100%;
     overflow: auto
 }
+.slot button, #sellall {
+    margin-left: 1vw;
+    font-size: 0.8vw
+}
 
 .name, .amount {
     font-weight: bolder;
     float: left;
-    font-size: 1vw
+    font-size: 1.2vw;
+    color: rgb(219, 219, 219);
+    -webkit-text-stroke-color: black;
+    -webkit-text-stroke-width: 0.5px;
+    margin-left: 0.5vw
 }
 
 .title {
@@ -55,4 +63,12 @@ a {
 
 .bolder {
     font-weight: bolder
+}
+
+.inline {
+    display: inline-block;
+}
+.inline #me {
+    float: left;
+    margin-left: 4vw;
 }

@@ -1,10 +1,17 @@
 import { CANVAS, CTX, ImageMemory, clearCanvas, MS_PER_FRAME, randInt, newImg, d, DEBUG } from "./globals.js"
-import { Block, Blocks, getBlock } from "./blocks.js"
+import { Blocks, getBlock, readBlock } from "./blocks.js"
 import { Player } from "./player.js"
 
+// Inventory
 const InvUI = d("inventory")
 const InvSlot = d("slotdummy")
 const InvMined = d("minedcounter")
+
+// Refinery
+const RefUI = d("refinery")
+const RefSlot = d("refslotdummy")
+const RefMoney = d("moneycounter")
+const SellAll = d("sellall")
 
 const w = CANVAS.width
 const h = CANVAS.width
@@ -18,7 +25,7 @@ globalThis.PLR = PLR
 let NOW = performance.now()
 let frame_time = NOW
 
-let curBlock = newBlock(Blocks[0])
+let curBlock = readBlock(Blocks[0])
 let Target
 let hitInterval
 let Cancel = false
@@ -34,14 +41,36 @@ const Cracks = {
 const Crack = newImg("cracks.png")
 let crackBounds
 
+function totalValue() {
+    let result = 0
+
+    for (const b in PLR.inventory) {
+        result += PLR.inventory[b]
+    }
+
+    return result
+}
+
+function refresh() {
+    drawInv()
+    drawInv(RefUI, RefSlot, RefMoney)
+    SellAll.innerText = `Sell All for $${totalValue()}`
+}
+
 function loadData() {
+    if (DEBUG) localStorage.removeItem("Mining_Data"); return
+
+    // how is this unreachable LOL
     let data = localStorage.getItem("Mining_Data")
 
     if (data) {
         data = JSON.parse(data)
 
-        for (const i in data) {
-            PLR[i] = data[i]
+        for (const i in data) PLR[i] = data[i]
+
+        // add missing stuff
+        for (const b in Blocks) {
+            if (!PLR.inventory[b.name]) PLR.inventory[b.name] = 0
         }
     }
 }
@@ -50,20 +79,18 @@ loadData()
 function saveData() {
     const data = {}
 
-    for (const i in PLR) {
-        data[i] = PLR[i]
-    }
+    for (const i in PLR) data[i] = PLR[i]
     localStorage.setItem("Mining_Data", JSON.stringify(data))
 }
 
-function drawInv() {
-    InvUI.innerHTML = null
+function drawInv(container = InvUI, dummy = InvSlot, accessory = InvMined) {
+    container.innerHTML = null
 
     for (const b in PLR.inventory) {
         const v = PLR.inventory[b]
 
         if (v > 0) {
-            const slot = InvSlot.cloneNode(true)
+            const slot = dummy.cloneNode(true)
 
             slot.id = b
     
@@ -77,11 +104,30 @@ function drawInv() {
             slot.querySelector(".amount").innerHTML = v
     
             slot.style.display = "block"
-            InvUI.appendChild(slot)
+
+            if (container === RefUI) {
+                const button = slot.querySelector("#sell")
+
+                const total = (data.value * v)
+                button.innerText = `Sell ${v} ${b} for $${total}`
+                button.addEventListener("mousedown", function() {
+                    PLR.inventory[b] = 0
+                    PLR.money += total
+                    
+                    refresh()
+                })
+            }
+
+            container.appendChild(slot)
         }
     }
 
-    InvMined.innerHTML = `Blocks mined: ${PLR.mined}`
+    if (accessory === InvMined) {
+         accessory.innerHTML = `Blocks mined: ${PLR.mined}`
+    }
+    else if (accessory === RefMoney) {
+        accessory.innerHTML = `You have: $${PLR.money}`
+    }
 }
 
 function drawTop(text, color) {
@@ -106,9 +152,11 @@ function hit() {
         else {
             PLR.inventory[Target.name]++
             PLR.mined++
-            drawInv()
+
+            refresh()
             saveData() // comment out later
-            curBlock = newBlock(randBlock())
+
+            curBlock = readBlock(randBlock())
         }
 
         crackBounds = null
@@ -129,11 +177,6 @@ function randBlock() {
     }
 
     return result
-}
-
-function newBlock(raw) {
-    const [n, s, v, r, style] = raw
-    return new Block(n, s, v, r, style)
 }
 
 function mineBlock() {
@@ -218,6 +261,22 @@ function step() {
     drawBlock(curBlock)
 }
 step()
-drawInv()
+refresh()
+
+
+// Hardcoded event listeners
 
 CANVAS.addEventListener("mousedown", mineBlock)
+SellAll.addEventListener("mousedown", function() {
+    const award = totalValue()
+
+    if (award <= 0) return
+
+    if (prompt(`Are you sure you want to Sell All for ${award}?`)) {
+        for (const b in PLR.inventory) {
+            PLR.inventory[b] = 0
+        }
+    
+        PLR.money += award
+    }
+})

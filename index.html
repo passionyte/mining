@@ -13,14 +13,27 @@
         <div class="blockcenter">
             <canvas id="CANVAS" class="canvas" width="800px"; height="800px"></canvas>
         </div>
-        <div> <!--Inventory Container-->
-            <a class="subtitle">Inventory</a>
-            <div class="slot" id="slotdummy">
-                <a class="name">Dirt:</a>
-                <a class="amount">0</a>
+        <div class="inline">
+            <div id="me"> <!--Inventory Container-->
+                <a class="subtitle">Inventory</a>
+                <div class="slot" id="slotdummy">
+                    <a class="name">Dirt:</a>
+                    <a class="amount">0</a>
+                </div>
+                <div class="inv" id="inventory"></div>
+                <a class="bolder" id="minedcounter">Blocks mined: 0</a>
             </div>
-            <div class="inv" id="inventory"></div>
-            <a class="bolder" id="minedcounter">Blocks mined: 0</a>
+            <div id="me" class="right"> <!--Refinery Container-->
+                <a class="subtitle">Refinery</a>
+                <button id="sellall">Sell All for $0</button>
+                <div class="slot" id="refslotdummy">
+                    <a class="name">Dirt:</a>
+                    <a class="amount">0</a>
+                    <button id="sell">Sell for $0</button>
+                </div>
+                <div class="inv" id="refinery"></div>
+                <a class="bolder" id="moneycounter">You have: $0</a>
+            </div>
         </div>
         
     </body>
