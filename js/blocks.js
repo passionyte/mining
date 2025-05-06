@@ -1,10 +1,12 @@
+import { newSound } from "./sounds.js"
+
 export class Block {
     // properties
     name
     strength
     hp
-        value
-        rarity
+    value
+    rarity
 
     // style
     color
@@ -19,13 +21,20 @@ export class Block {
         this.rarity = r
 
         for (const i in style) {
-            this[i] = style[i]
+            if (i == "sound") {
+                this[i] = newSound(style[i])
+            }
+            else {
+                this[i] = style[i]
+            }
         }
+
+        if (!this.sound) this.sound = newSound()
     }
 }
 
 export const Blocks = [ // First = strength, Second = value, Third = rarity
-    ["Dirt", 10, 1, -1, {color: "rgb(92, 64, 51)"}],
+    ["Dirt", 10, 1, -1, {color: "rgb(92, 64, 51)", sound: "dirt.ogg"}],
     ["Stone", 15, 2, 6, {color: "rgb(120, 120, 120)"}],
     ["Copper", 18, 5, 8, {color: "rgb(150, 100, 21)"}],
     ["Steel", 25, 8, 10, {color: "rgb(171, 171, 171)"}],

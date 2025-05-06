@@ -1,6 +1,7 @@
 import { CANVAS, CTX, ImageMemory, clearCanvas, MS_PER_FRAME, randInt, newImg, d, DEBUG } from "./globals.js"
 import { Blocks, getBlock, readBlock } from "./blocks.js"
 import { Player } from "./player.js"
+import { playSound, newSound } from "./sounds.js"
 
 // Inventory
 const InvUI = d("inventory")
@@ -12,6 +13,8 @@ const RefUI = d("refinery")
 const RefSlot = d("refslotdummy")
 const RefMoney = d("moneycounter")
 const SellAll = d("sellall")
+
+// Variables
 
 const w = CANVAS.width
 const h = CANVAS.width
@@ -30,6 +33,8 @@ let Target
 let hitInterval
 let Cancel = false
 
+// Cracks
+
 const Cracks = {
     [100]: {x: 0, y: 0},
     [80]: {x: 320, y: 0},
@@ -41,11 +46,19 @@ const Cracks = {
 const Crack = newImg("cracks.png")
 let crackBounds
 
+// Sound preloads
+
+const pop = newSound("pop.mp3")
+
+// Functions
+
 function totalValue() {
     let result = 0
 
     for (const b in PLR.inventory) {
-        result += PLR.inventory[b]
+        const data = getBlock(b)
+
+        if (data) result += (PLR.inventory[b] * data.value || 0)
     }
 
     return result
@@ -58,9 +71,11 @@ function refresh() {
 }
 
 function loadData() {
-    if (DEBUG) localStorage.removeItem("Mining_Data"); return
+    if (DEBUG) {
+        localStorage.removeItem("Mining_Data")
+        return
+    }
 
-    // how is this unreachable LOL
     let data = localStorage.getItem("Mining_Data")
 
     if (data) {
@@ -143,6 +158,7 @@ function drawTop(text, color) {
 }
 
 function hit() {
+    playSound(Target.sound, true)
     Target.hp -= PLR.strength
 
     if (Cancel || (Target.hp <= 0)) {
@@ -150,6 +166,8 @@ function hit() {
             Target.hp = Target.strength
         }
         else {
+            playSound(pop, true)
+
             PLR.inventory[Target.name]++
             PLR.mined++
 
@@ -183,7 +201,7 @@ function mineBlock() {
     if (!Target && curBlock) {
         Target = curBlock
 
-        hitInterval = setInterval(hit, (((DEBUG) && 1) || 500))
+        hitInterval = setInterval(hit, (((DEBUG) && 50) || 500))
     }
 }
 
@@ -272,11 +290,13 @@ SellAll.addEventListener("mousedown", function() {
 
     if (award <= 0) return
 
-    if (prompt(`Are you sure you want to Sell All for ${award}?`)) {
+    if (confirm(`Are you sure you want to Sell All for $${award}?`)) {
         for (const b in PLR.inventory) {
             PLR.inventory[b] = 0
         }
     
         PLR.money += award
+
+        refresh()
     }
 })

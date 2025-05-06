@@ -6,7 +6,7 @@ export const MS_PER_FRAME = (1000 / FPS)
 
 export const DEBUG = true
 
-const Url = "./"
+export const Url = "../"
 
 export function d(id) {
     return document.getElementById(id)
