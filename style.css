@@ -5,8 +5,54 @@
     border-width: thick;
 }
 
-.centered {
+.flexcenter {
     display: flex;
     justify-content: center;
+}
 
+.blockcenter {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    display: block;
+    width: 100%
+}
+
+a {
+    font-family: 'Courier New', Courier, monospace
+}
+
+.inv {
+    background-color: rgb(150, 150, 150);
+    display: block;
+    width: 18vw;
+    aspect-ratio: 2/1;
+    overflow-y: scroll;
+}
+
+.slot {
+    background-color: rgb(200, 200, 200);
+    display: none; /* Intended display is block */
+    width: 100%;
+    overflow: auto
+}
+
+.name, .amount {
+    font-weight: bolder;
+    float: left;
+    font-size: 1vw
+}
+
+.title {
+    font-size: 3vw;
+    font-weight: bolder
+}
+
+.subtitle {
+    font-size: 1.5vw;
+    font-weight: bold
+}
+
+.bolder {
+    font-weight: bolder
 }

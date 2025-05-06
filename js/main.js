@@ -1,6 +1,10 @@
-import { CANVAS, CTX, ImageMemory, clearCanvas, MS_PER_FRAME, randInt, newImg } from "./globals.js"
+import { CANVAS, CTX, ImageMemory, clearCanvas, MS_PER_FRAME, randInt, newImg, d, DEBUG } from "./globals.js"
 import { Block, Blocks, getBlock } from "./blocks.js"
 import { Player } from "./player.js"
+
+const InvUI = d("inventory")
+const InvSlot = d("slotdummy")
+const InvMined = d("minedcounter")
 
 const w = CANVAS.width
 const h = CANVAS.width
@@ -10,10 +14,6 @@ const cenY = (h / 2)
 
 const PLR = new Player()
 globalThis.PLR = PLR
-
-for (const b of Blocks) {
-    PLR.inventory[b[0]] = 0
-}
 
 let NOW = performance.now()
 let frame_time = NOW
@@ -33,6 +33,56 @@ const Cracks = {
 }
 const Crack = newImg("cracks.png")
 let crackBounds
+
+function loadData() {
+    let data = localStorage.getItem("Mining_Data")
+
+    if (data) {
+        data = JSON.parse(data)
+
+        for (const i in data) {
+            PLR[i] = data[i]
+        }
+    }
+}
+loadData()
+
+function saveData() {
+    const data = {}
+
+    for (const i in PLR) {
+        data[i] = PLR[i]
+    }
+    localStorage.setItem("Mining_Data", JSON.stringify(data))
+}
+
+function drawInv() {
+    InvUI.innerHTML = null
+
+    for (const b in PLR.inventory) {
+        const v = PLR.inventory[b]
+
+        if (v > 0) {
+            const slot = InvSlot.cloneNode(true)
+
+            slot.id = b
+    
+            const nm = slot.querySelector(".name")
+    
+            nm.innerHTML = b + ":"
+
+            const data = getBlock(b)
+
+            nm.style.color = ((data) && data.color) || "rgb(100, 100, 100)"
+            slot.querySelector(".amount").innerHTML = v
+    
+            slot.style.display = "block"
+            InvUI.appendChild(slot)
+        }
+    }
+
+    InvMined.innerHTML = `Blocks mined: ${PLR.mined}`
+}
 
 function drawTop(text, color) {
     CTX.fillStyle = "rgba(0, 0, 0, 0.75)"
@@ -56,6 +106,8 @@ function hit() {
         else {
             PLR.inventory[Target.name]++
             PLR.mined++
+            drawInv()
+            saveData() // comment out later
             curBlock = newBlock(randBlock())
         }
 
@@ -81,7 +133,6 @@ function randBlock() {
 
 function newBlock(raw) {
     const [n, s, v, r, style] = raw
-
     return new Block(n, s, v, r, style)
 }
 
@@ -89,7 +140,7 @@ function mineBlock() {
     if (!Target && curBlock) {
         Target = curBlock
 
-        hitInterval = setInterval(hit, 500)
+        hitInterval = setInterval(hit, (((DEBUG) && 1) || 500))
     }
 }
 
@@ -126,6 +177,7 @@ function drawBlock(nm) {
 
                 last = x
             }
+            last = null
 
             if (!crackBounds) return
 
@@ -151,7 +203,6 @@ function drawBlock(nm) {
         if (!curBlock) curBlock = data
     }
 }
-//drawBlock("Dirt")
 
 function step() {
     requestAnimationFrame(step)
@@ -167,5 +218,6 @@ function step() {
     drawBlock(curBlock)
 }
 step()
+drawInv()
 
 CANVAS.addEventListener("mousedown", mineBlock)
