@@ -19,7 +19,12 @@
 }
 
 a, button {
-    font-family: 'Courier New', Courier, monospace
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1vw;
+}
+
+button {
+    cursor: pointer
 }
 
 .inv {
@@ -32,13 +37,16 @@ a, button {
 
 .slot {
     background-color: rgb(200, 200, 200);
-    display: none; /* Intended display is block */
     width: 100%;
     overflow: auto
 }
 .slot button, #sellall {
     margin-left: 1vw;
-    font-size: 0.8vw
+    font-size: 0.8vw;
+}
+
+#sellall {
+    margin-bottom: 0.5vw;
 }
 
 .name, .amount {
@@ -71,4 +79,57 @@ a, button {
 .inline #me {
     float: left;
     margin-left: 4vw;
+}
+
+#pickdisplay a, img, button {
+    display: inline-block;
+    justify-content: center;
+    text-align: center
+}
+#pickdisplay button {
+    margin-top: 0.5vw;
+    margin-bottom: 0.5vw;
+}
+#pickdisplay #pickicon {
+    width: 4vw;
+    aspect-ratio: 1/1
+}
+
+.bold {
+    font-weight: bold
+}
+
+.statholder {
+    width: 4vw;
+    aspect-ratio: 1/0.5;
+    background-color: darkgray; /* temp lol */
+    border-radius: 0.5vw;
+    display: inline-block
+}
+.statholder a {
+    font-size: 0.75vw;
+    text-align: center;
+    width: 100%
+}
+.statholder #val {
+    font-size: 1vw
+}
+
+.hidden {
+    display: none
+}
+
+#pickicon {
+    display: flex;
+    align-items: center;
+    justify-items: center;
+    background-position: center;
+    background-size: cover;
+}
+
+#equipped {
+    background-color: darkgray;
+    color: rgb(0, 255, 0);
+    -webkit-text-stroke-color: black;
+    -webkit-text-stroke-width: 0.7px;
 }

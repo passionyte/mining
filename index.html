@@ -11,28 +11,62 @@
             <a class="title">Mining Demo</a>
         </div>
         <div class="blockcenter">
-            <canvas id="CANVAS" class="canvas" width="800px"; height="800px"></canvas>
+            <canvas id="CANVAS" class="canvas" width="800px" height="800px"></canvas>
         </div>
         <div class="inline">
             <div id="me"> <!--Inventory Container-->
                 <a class="subtitle">Inventory</a>
-                <div class="slot" id="slotdummy">
+                <div class="slot hidden" id="slotdummy">
                     <a class="name">Dirt:</a>
                     <a class="amount">0</a>
                 </div>
                 <div class="inv" id="inventory"></div>
-                <a class="bolder" id="minedcounter">Blocks mined: 0</a>
+                <a class="bolder" id="minedcounter">Blocks mined: 0</a> <br>
+                <a class="bolder" id="depthcounter">Current depth: 0</a>
             </div>
-            <div id="me" class="right"> <!--Refinery Container-->
+            <div id="me"> <!--Refinery Container-->
                 <a class="subtitle">Refinery</a>
                 <button id="sellall">Sell All for $0</button>
-                <div class="slot" id="refslotdummy">
+                <div class="slot hidden" id="refslotdummy">
                     <a class="name">Dirt:</a>
                     <a class="amount">0</a>
                     <button id="sell">Sell for $0</button>
                 </div>
                 <div class="inv" id="refinery"></div>
                 <a class="bolder" id="moneycounter">You have: $0</a>
+            </div>
+            <div id="me"> <!--Shop Container-->
+                <a class="subtitle">Shop</a>
+                <div class="slot hidden" id="shopslotdummy">
+                    <a class="name">Better Pickaxe</a>
+                    <button id="buy">Buy for $0</button>
+                </div>
+                <div class="inv" id="shop"></div>
+                <div id="pickdisplay">
+                    <a class="bolder">Your pickaxe</a> <br>
+                    <div style="background-image: url('imgs/pick_starter.png')" id="pickicon">
+                        <a class="bolder" id="equipped">EQUIPPED</a>
+                    </div> <br>
+                    <a class="bolder" id="pickname">Starter Pickaxe</a> <br>
+                    <button id="prevpick">Prev</button>
+                    <button class="hidden" id="buypick">Buy for $0</button>
+                    <button class="hidden" id="equippick">Equip</button>
+                    <button id="nextpick">Next</button>
+
+                    <div id="pickstats">
+                        <div class="statholder" id="strength">
+                            <a class="bold">Strength</a>
+                            <hr>
+                            <a class="bolder" id="val">1</a>
+                        </div>
+                        <div class="statholder" id="delay">
+                            <a class="bold">Delay</a>
+                            <hr>
+                            <a class="bolder" id="val">1s</a>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         </div>
         

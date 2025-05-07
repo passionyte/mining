@@ -1,12 +1,14 @@
-import { CANVAS, CTX, ImageMemory, clearCanvas, MS_PER_FRAME, randInt, newImg, d, DEBUG } from "./globals.js"
+import { CANVAS, CTX, ImageMemory, clearCanvas, MS_PER_FRAME, randInt, newImg, d, DEBUG, Url } from "./globals.js"
 import { Blocks, getBlock, readBlock } from "./blocks.js"
 import { Player } from "./player.js"
-import { playSound, newSound } from "./sounds.js"
+import { playSound, newSound, Sounds } from "./sounds.js"
+import { Pickaxes, getPickaxe } from "./picks.js"
 
 // Inventory
 const InvUI = d("inventory")
 const InvSlot = d("slotdummy")
 const InvMined = d("minedcounter")
+const CurDepth = d("depthcounter")
 
 // Refinery
 const RefUI = d("refinery")
@@ -14,16 +16,30 @@ const RefSlot = d("refslotdummy")
 const RefMoney = d("moneycounter")
 const SellAll = d("sellall")
 
+// Shop
+const ShopUI = d("shop")
+const ShopSlot = d("shopslotdummy")
+
+// Pickaxe
+const PickUI = d("pickdisplay")
+const PickStats = d("pickstats")
+const PickIcon = d("pickicon")
+const PickStrength = PickStats.querySelector("#strength")
+const PickDelay = PickStats.querySelector("#delay")
+const PrevPick = d("prevpick")
+const NextPick = d("nextpick")
+const BuyPick = d("buypick")
+const EquipPick = d("equippick")
+
 // Variables
 
 const w = CANVAS.width
-const h = CANVAS.width
+const h = CANVAS.height
 
 const cenX = (w / 2)
 const cenY = (h / 2)
 
-const PLR = new Player()
-globalThis.PLR = PLR
+export const PLR = new Player()
 
 let NOW = performance.now()
 let frame_time = NOW
@@ -31,12 +47,13 @@ let frame_time = NOW
 let curBlock = readBlock(Blocks[0])
 let Target
 let hitInterval
+let pickViewing = 0
 let Cancel = false
 
 // Cracks
 
 const Cracks = {
-    [100]: {x: 0, y: 0},
+    [90]: {x: 0, y: 0},
     [80]: {x: 320, y: 0},
     [60]: {x: 0, y: 320},
     [40]: {x: 320, y: 320},
@@ -46,11 +63,53 @@ const Cracks = {
 const Crack = newImg("cracks.png")
 let crackBounds
 
-// Sound preloads
-
-const pop = newSound("pop.mp3")
+// Sound preloads (sounds.js 'handles' preloading on new)
+const pop = newSound(true, "pop.ogg")
 
 // Functions
+
+function drawPickaxe(pick) {
+    let data
+
+    if (!pick) {
+        data = Pickaxes[pickViewing]
+    }
+    else { // assuming 'pick' is a string
+        data = getPickaxe(pick)
+    }
+
+    if (data) {
+        if (!pick) pick = data.name
+
+        const title = PickUI.querySelector("#pickname")
+
+        title.innerHTML = `${pick} Pickaxe`
+
+        PickIcon.style.backgroundImage = `url(${Url + "imgs/" + data.img})`
+
+        const equipped = (PLR.pickaxe == pick)
+        const owned = (PLR.ownedItems[pick])
+
+        PickIcon.querySelector("#equipped").style.display = ((equipped && "inline-block") || "none")
+        EquipPick.style.display = (((owned && !equipped) && "inline-block") || "none")
+        BuyPick.style.display = (((!owned) && "inline-block") || "none")
+        BuyPick.innerText = `Buy for $${data.cost}`
+
+        PickStrength.querySelector("#val").innerHTML = data.strength
+        PickDelay.querySelector("#val").innerHTML = `${(Math.floor((data.delay / 1000) * 100) / 100)}s`
+    }
+}
+
+function equipPickaxe(pick) {
+    if (PLR.ownedItems[pick.name]) {
+        Cancel = true
+        PLR.pickaxe = pick.name
+        PLR.strength = pick.strength
+        PLR.delay = pick.delay
+        
+        saveData()
+    }
+}
 
 function totalValue() {
     let result = 0
@@ -67,6 +126,9 @@ function totalValue() {
 function refresh() {
     drawInv()
     drawInv(RefUI, RefSlot, RefMoney)
+
+    // replace 1000 with PLR.maxDepth later
+    CurDepth.innerText = `Current depth: ${PLR.depth} / ${1000}`
     SellAll.innerText = `Sell All for $${totalValue()}`
 }
 
@@ -129,6 +191,7 @@ function drawInv(container = InvUI, dummy = InvSlot, accessory = InvMined) {
                     PLR.inventory[b] = 0
                     PLR.money += total
                     
+                    saveData()
                     refresh()
                 })
             }
@@ -138,7 +201,7 @@ function drawInv(container = InvUI, dummy = InvSlot, accessory = InvMined) {
     }
 
     if (accessory === InvMined) {
-         accessory.innerHTML = `Blocks mined: ${PLR.mined}`
+        accessory.innerHTML = `Blocks mined: ${PLR.mined}`
     }
     else if (accessory === RefMoney) {
         accessory.innerHTML = `You have: $${PLR.money}`
@@ -158,21 +221,25 @@ function drawTop(text, color) {
 }
 
 function hit() {
-    playSound(Target.sound, true)
-    Target.hp -= PLR.strength
+    playSound(Sounds[Target.sound || "generic.ogg"], true)
+    Target.hp -= (((DEBUG) && Target.hp)) || PLR.strength
 
     if (Cancel || (Target.hp <= 0)) {
         if (Cancel) {
+            Cancel = false
             Target.hp = Target.strength
         }
         else {
-            playSound(pop, true)
+            playSound(pop)
 
             PLR.inventory[Target.name]++
             PLR.mined++
 
+            // replace 1000 with PLR.maxDepth later
+            if (PLR.depth < 1000) PLR.depth++
+
             refresh()
-            saveData() // comment out later
+            saveData()
 
             curBlock = readBlock(randBlock())
         }
@@ -188,7 +255,7 @@ function randBlock() {
 
     for (const b of Blocks) {
         const r = b[3]
-        if (r != -1 && randInt(1, r) == 1) {
+        if (r != -1 && (PLR.depth >= b[4]) && (randInt(1, r) == 1)) {
             result = b
             break
         }
@@ -200,8 +267,14 @@ function randBlock() {
 function mineBlock() {
     if (!Target && curBlock) {
         Target = curBlock
+        Cancel = false
 
-        hitInterval = setInterval(hit, (((DEBUG) && 50) || 500))
+        if (DEBUG) {
+            hit()
+        }
+        else {
+            hitInterval = setInterval(hit, PLR.delay)
+        }
     }
 }
 
@@ -226,19 +299,12 @@ function drawBlock(nm) {
         let p = 0
         if (Target) {
             p = Math.round(((1 - (Target.hp / Target.strength)) * 100))
-
-            let last = 0
-            for (const x in Cracks) {
-                if (last) {
-                    if (x > p && last < p) {
-                        crackBounds = Cracks[x]
-                        break
-                    }
+            for (const threshold of Object.keys(Cracks).map(Number).sort((a, b) => b - a)) {
+                if (p >= threshold) {
+                    crackBounds = Cracks[threshold]
+                    break
                 }
-
-                last = x
             }
-            last = null
 
             if (!crackBounds) return
 
@@ -277,9 +343,15 @@ function step() {
     /*** END FPS Trap ***/
 
     drawBlock(curBlock)
+
+    if (DEBUG) {
+        if (globalThis.curBlock) curBlock = getBlock(globalThis.curBlock)
+        globalThis.PLR = PLR
+    }
 }
 step()
 refresh()
+drawPickaxe()
 
 
 // Hardcoded event listeners
@@ -297,6 +369,39 @@ SellAll.addEventListener("mousedown", function() {
     
         PLR.money += award
 
+        saveData()
         refresh()
     }
 })
+PrevPick.addEventListener("mousedown", function() {
+    if (pickViewing > 0) pickViewing--
+    drawPickaxe()
+})
+NextPick.addEventListener("mousedown", function() {
+    if (pickViewing < Pickaxes.length) pickViewing++
+    drawPickaxe()
+})
+EquipPick.addEventListener("mousedown", function() {
+    equipPickaxe(Pickaxes[pickViewing])
+    drawPickaxe()
+})
+BuyPick.addEventListener("mousedown", function() {
+    const data = Pickaxes[pickViewing]
+
+    if (data) {
+        if (!PLR.ownedItems[data.name]) {
+            const cost = data.cost
+
+            if (PLR.money >= cost) {
+                PLR.money -= cost
+                PLR.ownedItems[data.name] = true
+
+                equipPickaxe(data)
+                refresh()
+                drawPickaxe()
+            }
+        }
+    }
+})
+
+export default { PLR }

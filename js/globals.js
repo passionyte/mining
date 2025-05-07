@@ -4,7 +4,7 @@ export const CTX = CANVAS.getContext("2d")
 export const FPS = 60
 export const MS_PER_FRAME = (1000 / FPS)
 
-export const DEBUG = true
+export const DEBUG = false
 
 export const Url = "../"
 
