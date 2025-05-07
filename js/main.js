@@ -3,6 +3,7 @@ import { Blocks, getBlock, readBlock } from "./blocks.js"
 import { Player } from "./player.js"
 import { playSound, newSound, Sounds } from "./sounds.js"
 import { Pickaxes, getPickaxe } from "./picks.js"
+import { Items, purchase } from "./shop.js"
 
 // Inventory
 const InvUI = d("inventory")
@@ -68,6 +69,33 @@ const pop = newSound(true, "pop.ogg")
 
 // Functions
 
+function drawShop() {
+    ShopUI.innerHTML = null
+
+    for (const item in Items) {
+        const data = Items[item]
+
+        if (data) {
+            const n = ShopSlot.cloneNode(true)
+
+            n.id = item
+
+            n.querySelector(".name").innerHTML = item
+
+            const button = n.querySelector("#buy")
+            button.innerHTML = `Buy for $${data.Cost}`
+            button.addEventListener("mousedown", function() {
+                purchase(item)
+                refresh()
+            })
+
+            n.style.display = "block"
+
+            ShopUI.appendChild(n)
+        }
+    }
+}
+
 function drawPickaxe(pick) {
     let data
 
@@ -126,9 +154,9 @@ function totalValue() {
 function refresh() {
     drawInv()
     drawInv(RefUI, RefSlot, RefMoney)
+    drawShop()
 
-    // replace 1000 with PLR.maxDepth later
-    CurDepth.innerText = `Current depth: ${PLR.depth} / ${1000}`
+    CurDepth.innerText = `Current depth: ${PLR.depth} / ${PLR.maxDepth}`
     SellAll.innerText = `Sell All for $${totalValue()}`
 }
 
@@ -235,8 +263,7 @@ function hit() {
             PLR.inventory[Target.name]++
             PLR.mined++
 
-            // replace 1000 with PLR.maxDepth later
-            if (PLR.depth < 1000) PLR.depth++
+            if (PLR.depth < PLR.maxDepth) PLR.depth++
 
             refresh()
             saveData()
