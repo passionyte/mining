@@ -1,5 +1,6 @@
 import { Blocks } from "./blocks.js"
 import { getPickaxe } from "./picks.js"
+import { DEBUG } from "./globals.js"
 
 export class Player {
     strength
@@ -24,6 +25,7 @@ export class Player {
         this.ownedItems = oi
         this.mined = m
 
+        if (DEBUG) return
         for (const b of Blocks) {
             this.inventory[b[0]] = 0
         }

@@ -161,10 +161,10 @@ function refresh() {
 }
 
 function loadData() {
-    if (DEBUG) {
+    /*if (DEBUG) {
         localStorage.removeItem("Mining_Data")
         return
-    }
+    }*/
 
     let data = localStorage.getItem("Mining_Data")
 
@@ -172,12 +172,17 @@ function loadData() {
         data = JSON.parse(data)
 
         for (const i in data) PLR[i] = data[i]
-
-        // add missing stuff
-        for (const b in Blocks) {
-            if (!PLR.inventory[b.name]) PLR.inventory[b.name] = 0
-        }
     }
+
+    // resort blocks
+    const n = {}
+    for (const b of Blocks) {
+        const v = PLR.inventory[b[0]]
+
+        n[b[0]] = ((typeof(v) == "number") && v) || 0
+    }
+    PLR.inventory = n
+    refresh()
 }
 loadData()
 
@@ -260,6 +265,7 @@ function hit() {
         else {
             playSound(pop)
 
+            if (isNaN(PLR.inventory[Target.name])) PLR.inventory[Target.name] = 0
             PLR.inventory[Target.name]++
             PLR.mined++
 
@@ -296,7 +302,7 @@ function mineBlock() {
         Target = curBlock
         Cancel = false
 
-        if (DEBUG) {
+        if (DEBUG || (PLR.strength >= Target.strength)) {
             hit()
         }
         else {
