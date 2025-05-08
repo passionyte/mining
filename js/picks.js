@@ -1,3 +1,6 @@
+// Passionyte 2025
+'use strict'
+
 export class Pickaxe {
     name
     strength
@@ -17,15 +20,15 @@ export class Pickaxe {
 }
 
 export const Pickaxes = [ // First number = strength (damage per hit), second number = delay (ms), third number = cost to purchase
-    new Pickaxe("Wood", 1, 1000, 0, "Starter", "pick_starter.png"),
-    new Pickaxe("Stone", 2, 1000, 100, "Basic", "pick_stone.png"),
-    new Pickaxe("Copper", 2.5, 800, 500, "Basic", "pick_copper.png"),
-    new Pickaxe("Steel", 4, 900, 1000, "Basic", "pick_steel.png"),
-    new Pickaxe("Gold", 3, 450, 2000, "Rare", "pick_gold.png"),
-    new Pickaxe("Ruby", 6, 650, 4000, "Rare", "pick_ruby.png"),
-    new Pickaxe("Emerald", 11, 1800, 6000, "Rare", "pick_emerald.png"),
-    new Pickaxe("Diamond", 7, 600, 8000, "Epic", "pick_diamond.png"),
-    new Pickaxe("Adurite", 9, 700, 12000, "Epic", "pick_adurite.png"),
+    new Pickaxe("Wood", 1, 1000, 0, "Common", "pick_starter.png"),
+    new Pickaxe("Stone", 2, 900, 100, "Common", "pick_stone.png"),
+    new Pickaxe("Copper", 2.5, 700, 500, "Common", "pick_copper.png"),
+    new Pickaxe("Steel", 4, 800, 1000, "Common", "pick_steel.png"),
+    new Pickaxe("Gold", 3, 400, 2000, "Rare", "pick_gold.png"),
+    new Pickaxe("Ruby", 6, 600, 4000, "Rare", "pick_ruby.png"),
+    new Pickaxe("Emerald", 11, 1500, 6000, "Rare", "pick_emerald.png"),
+    new Pickaxe("Diamond", 7, 550, 8000, "Rare", "pick_diamond.png"),
+    new Pickaxe("Adurite", 9, 500, 12000, "Epic", "pick_adurite.png"),
 ]
 
 export function getPickaxe(n) {

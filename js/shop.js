@@ -1,3 +1,6 @@
+// Passionyte 2025
+'use strict'
+
 import { PLR } from "./main.js"
 import { DEBUG } from "./globals.js"
 

@@ -1,79 +1,302 @@
+// Passionyte 2025
+'use strict'
+
 import { newSound } from "./sounds.js"
 
-export class Block {
+class Block {
     // properties
     name
     strength
     hp
     value
     rarity
-    depth
+    minDepth
 
     // style
     color
     texture
     sound
 
-    constructor(n, s, v, r, d, style) {
-        this.name = n
-        this.strength = s
-        this.hp = s
-        this.value = v
-        this.rarity = r
-        this.depth = d
-
-        for (const i in style) {
-            this[i] = style[i]
+    constructor(d) {
+        for (const i in d) {
+            if (i == "style") {
+                for (const ix in d.style) {
+                    this[ix] = d.style[ix]
+                } 
+            }
+            else {
+                this[i] = d[i]
+            }
         }
+
+        this.hp = this.strength
     }
 }
 
-export const Blocks = [ // First = strength, Second = value, Third = rarity, Fourth = depth
-    ["Dirt", 8, 1, -1, 0, {color: "rgb(92, 64, 51)", sound: "dirt.ogg"}],
-    ["Clay", 10, 2, 4, 2, {color: "rgb(185, 163, 152)", sound: "dirt.ogg"}],
-    ["Stone", 12, 4, 6, 10, {color: "rgb(120, 120, 120)"}],
-    ["Copper", 16, 10, 8, 15, {color: "rgb(150, 100, 21)"}],
-    ["Steel", 20, 15, 10, 25, {color: "rgb(171, 171, 171)"}],
-    ["Gold", 18, 22, 12, 50, {color: "rgb(255, 201, 85)"}],
-    ["Sapphire", 24, 35, 16, 75, {color: "rgb(50, 81, 255)"}],
-    ["Ruby", 28, 42, 20, 100, {color: "rgb(172, 24, 24)"}],
-    ["Emerald", 30, 55, 24, 150, {color: "rgb(24, 172, 44)"}],
-    ["Diamond", 40, 70, 32, 200, {color: "rgb(35, 181, 218)"}],
-    ["Uranium", 34, 95, 50, 250, {color: "rgb(17, 240, 9)"}],
-    ["Amethyst", 45, 120, 75, 325, {color: "rgb(186, 9, 240)"}],
-    ["Platinum", 50, 280, 100, 400, {color: "rgb(225, 225, 225)"}],
-    ["Tektite", 60, 666, 200, 500, {color: "rgb(40, 30, 30)"}],
-    ["Adurite", 80, 1500, 500, 650, {color: "rgb(120, 0, 0)"}],
-    ["Viridian", 100, 4000, 2000, 800, {color: "rgb(0, 120, 0)"}],
-    ["Fire crystal", 200, 20000, 14000, 1000, {color: "rgb(246, 172, 13)"}]
+class Layer {
+    // properties
+    block
+    minDepth
+    maxDepth
+
+    isWithin(d) { // checks if a depth is within the layer's range (min/max)
+        return anyWithin(d, this.minDepth, this.maxDepth)
+    }
+
+    getBlocksWithinPool(d) { // returns a array of block names in the spawn pool for this layer
+        const result = []
+
+        for (const b of Blocks) {
+            if (b.minDepth) {
+                if (this.isWithin(b.minDepth) && (!b.maxDepth || this.isWithin(b.maxDepth)) && (!d || anyWithin(d, b.minDepth, b.maxDepth))) {
+                    console.log(`${b.name} added to pool`)
+                    result.push(b)
+                }
+            }
+        }
+
+        return result
+    }
+
+    constructor(b, min, max) {
+        this.block = b
+        this.minDepth = min
+        this.maxDepth = max
+    }
+}
+
+export const Blocks = [ 
+    /* 
+        If a tier is undefined, then it is 'Common'.
+        If rarity, minDepth and maxDepth are undefined, then it is assumed the block is a layer block, otherwise no spawning.
+        If maxDepth is undefined, then it spawns everywhere after its minDepth.
+    */
+
+    {
+        name: "Dirt",
+        strength: 8,
+        value: 1,
+        style: {color: "rgb(92, 64, 51)", sound: "dirt.ogg"}
+    },
+    {
+        name: "Clay",
+        strength: 10,
+        value: 2,
+        rarity: 3,
+        minDepth: 2,
+        maxDepth: 40,
+        style: {color: "rgb(185, 163, 152)", sound: "dirt.ogg"}
+    },
+    {
+        name: "Stone",
+        strength: 12,
+        value: 4,
+        style: {color: "rgb(120, 120, 120)"}
+    },
+    {
+        name: "Copper",
+        strength: 16,
+        value: 10,
+        rarity: 6,
+        minDepth: 20,
+        style: {color: "rgb(150, 100, 21)"}
+    },
+    {
+        name: "Steel",
+        strength: 20,
+        value: 15,
+        rarity: 8,
+        minDepth: 41,
+        style: {color: "rgb(171, 171, 171)"}
+    },
+    {
+        name: "Gold",
+        strength: 18,
+        value: 22,
+        rarity: 12,
+        minDepth: 41,
+        style: {color: "rgb(255, 201, 85)"}
+    },
+    {
+        name: "Sapphire",
+        strength: 24,
+        value: 35,
+        rarity: 14,
+        minDepth: 60,
+        style: {color: "rgb(50, 81, 255)"}
+    },
+    {
+        name: "Ruby",
+        strength: 28,
+        value: 42,
+        rarity: 16,
+        minDepth: 100,
+        style: {color: "rgb(172, 24, 24)"}
+    },
+    {
+        name: "Amber",
+        strength: 15,
+        value: 48,
+        rarity: 9,
+        minDepth: 22,
+        maxDepth: 41,
+        style: {color: "rgb(177, 122, 5)"}
+    },
+    {
+        name: "Emerald",
+        strength: 30,
+        value: 55,
+        rarity: 20,
+        minDepth: 150,
+        style: {color: "rgb(24, 172, 44)"}
+    },
+    {
+        name: "Diamond",
+        strength: 40,
+        value: 70,
+        rarity: 25,
+        minDepth: 200,
+        style: {color: "rgb(35, 181, 218)"}
+    },
+    {
+        name: "Obsidian",
+        strength: 60,
+        value: 90,
+        rarity: 30,
+        minDepth: 225,
+        style: {color: "rgb(30, 0, 30)"}
+    },
+    {
+        name: "Uranium",
+        tier: "Uncommon",
+        strength: 34,
+        value: 102,
+        rarity: 40,
+        minDepth: 250,
+        style: {color: "rgb(17, 240, 9)"}
+    },
+    {
+        name: "Amethyst",
+        tier: "Uncommon",
+        strength: 45,
+        value: 180,
+        rarity: 50,
+        minDepth: 300,
+        style: {color: "rgb(186, 9, 240)"}
+    },
+    {
+        name: "Titanium",
+        tier: "Uncommon",
+        strength: 55,
+        value: 246,
+        rarity: 60,
+        minDepth: 350,
+        style: {color: "rgb(80, 90, 100)"}
+    },
+    {
+        name: "Platinum",
+        tier: "Uncommon",
+        strength: 50,
+        value: 380,
+        rarity: 70,
+        minDepth: 400,
+        style: {color: "rgb(225, 225, 225)"}
+    },
+    {
+        name: "Tektite",
+        tier: "Rare",
+        strength: 60,
+        value: 666,
+        rarity: 85,
+        minDepth: 500,
+        style: {color: "rgb(40, 30, 30)"}
+    },
+    {
+        name: "Adurite",
+        tier: "Rare", 
+        strength: 70,
+        value: 1500,
+        rarity: 100,
+        minDepth: 600,
+        style: {color: "rgb(120, 0, 0)"}
+    },
+    {
+        name: "Viridian",
+        tier: "Epic",
+        strength: 100,
+        value: 6200,
+        rarity: 200,
+        minDepth: 800,
+        style: {color: "rgb(0, 120, 0)"}
+    },
+    {
+        name: "Fire crystal",
+        tier: "Legendary",
+        strength: 200,
+        value: 24000,
+        rarity: 500,
+        minDepth: 1000,
+        style: {color: "rgb(246, 172, 13)"}
+    }
 ]
+
+export const Layers = [
+    /*
+        Same rule about depth ranges applies here.
+        No layer can co-exist within eachother's range; if that happens, there's trouble!
+    */
+
+    new Layer("Dirt", 0, 40),
+    new Layer("Stone", 40)
+]
+
+export const Tiers = { // Simply just colors
+    Common: "rgb(200, 200, 200)",
+    Uncommon: "rgb(140, 140, 140)",
+    Rare: "rgb(40, 170, 255)",
+    Epic: "rgb(155, 2, 226)",
+    Legendary: "rgb(220, 220, 50)"
+}
 
 newSound(true, "generic.ogg")
 for (const a of Blocks) {
-    const s = a[5].sound
+    const s = a.style.sound
 
     if (s) newSound(true, s)
 }
 
-export function readBlock(b) {
-    const [n, s, v, r, d, style] = b
-
-    return new Block(n, s, v, r, d, style)
+export function newBlock(b) {
+    return new Block(b)
 }
 
 export function getBlock(nm) {
     let result
 
     for (let b of Blocks) {
-        b = readBlock(b)
-
         if (b.name == nm) {
-            result = b
+            result = newBlock(b)
             break
         }
     }
 
     return result
+}
+
+export function layerFromDepth(d) {
+    let layer = Layers[0]
+
+    for (const l of Layers) {
+        if (l.isWithin(d)) {
+            layer = l
+            break
+        }
+    }
+
+    return layer
+}
+
+export function anyWithin(d, min, max) {
+    return (d >= min && (!max || (d <= max)))
 }
 
 export default { Block }

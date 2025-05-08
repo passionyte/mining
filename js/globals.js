@@ -1,10 +1,13 @@
+// Passionyte 2025
+'use strict'
+
 export const CANVAS = d("CANVAS")
 export const CTX = CANVAS.getContext("2d")
 
 export const FPS = 60
 export const MS_PER_FRAME = (1000 / FPS)
 
-export const DEBUG = false
+export const DEBUG = true
 
 export const Url = "../"
 
@@ -34,5 +37,21 @@ export function clearCanvas() {
 export function randInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }  
+
+export function clamp(x, min, max) {
+    if (x < min) x = min
+
+    if (x > max) x = max
+
+    return x
+}
+
+export function sanify(x) {
+    x = Number(x)
+
+    if (isNaN(x)) return false
+
+    return Math.floor(Math.abs(x))
+}
 
 export default { CTX }

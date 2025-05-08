@@ -1,3 +1,6 @@
+// Passionyte 2025
+'use strict'
+
 import { Blocks } from "./blocks.js"
 import { getPickaxe } from "./picks.js"
 import { DEBUG } from "./globals.js"
@@ -11,6 +14,7 @@ export class Player {
     mined
     money = 0
     depth = 0
+    minedDepth = 0
     maxDepth = 100
 
     constructor(p = "Wood", i = {}, oi = {Wood: true}, m = 0) {
@@ -27,7 +31,7 @@ export class Player {
 
         if (DEBUG) return
         for (const b of Blocks) {
-            this.inventory[b[0]] = 0
+            this.inventory[b.name] = 0
         }
     }
 }

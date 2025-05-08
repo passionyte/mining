@@ -1,5 +1,8 @@
-import { CANVAS, CTX, ImageMemory, clearCanvas, MS_PER_FRAME, randInt, newImg, d, DEBUG, Url } from "./globals.js"
-import { Blocks, getBlock, readBlock } from "./blocks.js"
+// Passionyte 2025
+'use strict'
+
+import { CANVAS, CTX, ImageMemory, clearCanvas, MS_PER_FRAME, randInt, newImg, d, DEBUG, Url, clamp, sanify } from "./globals.js"
+import { Blocks, getBlock, newBlock, layerFromDepth, Tiers } from "./blocks.js"
 import { Player } from "./player.js"
 import { playSound, newSound, Sounds } from "./sounds.js"
 import { Pickaxes, getPickaxe } from "./picks.js"
@@ -32,6 +35,11 @@ const NextPick = d("nextpick")
 const BuyPick = d("buypick")
 const EquipPick = d("equippick")
 
+// Depth Selector
+const ToMove = d("mover")
+const DepthUp = d("up")
+const DepthDown = d("dn")
+
 // Variables
 
 const w = CANVAS.width
@@ -45,7 +53,7 @@ export const PLR = new Player()
 let NOW = performance.now()
 let frame_time = NOW
 
-let curBlock = readBlock(Blocks[0])
+let curBlock = newBlock(Blocks[0])
 let Target
 let hitInterval
 let pickViewing = 0
@@ -68,6 +76,19 @@ let crackBounds
 const pop = newSound(true, "pop.ogg")
 
 // Functions
+
+function moveDepth(x) {
+    const des = clamp((PLR.depth + x), 0, PLR.minedDepth) // desired depth
+
+    if (des > -1 && (des <= PLR.minedDepth)) { // If player has mined to this depth, then Fine.
+        PLR.depth = des
+        Cancel = true
+        curBlock = newBlock(getBlock(layerFromDepth(PLR.depth).block)) // Gets the current layer block
+
+        saveData()
+        refresh()
+    }
+}
 
 function drawShop() {
     ShopUI.innerHTML = null
@@ -106,23 +127,31 @@ function drawPickaxe(pick) {
         data = getPickaxe(pick)
     }
 
-    if (data) {
+    if (data) { // Let's handle the pickaxe gui!
         if (!pick) pick = data.name
 
         const title = PickUI.querySelector("#pickname")
 
         title.innerHTML = `${pick} Pickaxe`
 
+        const tier = PickUI.querySelector("#picktier")
+        const t = data.tier || "Common"
+
+        tier.innerHTML = t
+        tier.style.color = Tiers[t]
+
         PickIcon.style.backgroundImage = `url(${Url + "imgs/" + data.img})`
 
         const equipped = (PLR.pickaxe == pick)
         const owned = (PLR.ownedItems[pick])
 
+        // A bunch of stuff like buttons that needs to appear or disappear
         PickIcon.querySelector("#equipped").style.display = ((equipped && "inline-block") || "none")
         EquipPick.style.display = (((owned && !equipped) && "inline-block") || "none")
         BuyPick.style.display = (((!owned) && "inline-block") || "none")
         BuyPick.innerText = `Buy for $${data.cost}`
 
+        // Pickaxe attributes
         PickStrength.querySelector("#val").innerHTML = data.strength
         PickDelay.querySelector("#val").innerHTML = `${(Math.floor((data.delay / 1000) * 100) / 100)}s`
     }
@@ -156,32 +185,30 @@ function refresh() {
     drawInv(RefUI, RefSlot, RefMoney)
     drawShop()
 
-    CurDepth.innerText = `Current depth: ${PLR.depth} / ${PLR.maxDepth}`
+    CurDepth.innerText = `Current depth: ${PLR.depth} / ${PLR.minedDepth} / ${PLR.maxDepth}`
     SellAll.innerText = `Sell All for $${totalValue()}`
 }
 
 function loadData() {
-    /*if (DEBUG) {
-        localStorage.removeItem("Mining_Data")
-        return
-    }*/
-
     let data = localStorage.getItem("Mining_Data")
 
     if (data) {
         data = JSON.parse(data)
 
         for (const i in data) PLR[i] = data[i]
+
+        curBlock = newBlock(getBlock(layerFromDepth(PLR.depth).block)) // Gets the current layer block
     }
 
-    // resort blocks
+    // re-sort blocks
     const n = {}
     for (const b of Blocks) {
-        const v = PLR.inventory[b[0]]
+        const v = PLR.inventory[b.name]
 
-        n[b[0]] = ((typeof(v) == "number") && v) || 0
+        n[b.name] = ((typeof(v) == "number") && v) || 0
     }
     PLR.inventory = n
+
     refresh()
 }
 loadData()
@@ -193,7 +220,7 @@ function saveData() {
     localStorage.setItem("Mining_Data", JSON.stringify(data))
 }
 
-function drawInv(container = InvUI, dummy = InvSlot, accessory = InvMined) {
+function drawInv(container = InvUI, dummy = InvSlot, accessory = InvMined) { // Handles both inventory and (optionally) refinery or whatever block list is in this style
     container.innerHTML = null
 
     for (const b in PLR.inventory) {
@@ -215,6 +242,9 @@ function drawInv(container = InvUI, dummy = InvSlot, accessory = InvMined) {
     
             slot.style.display = "block"
 
+            const tier = data.tier || "Common"
+            slot.style.backgroundColor = Tiers[tier]
+
             if (container === RefUI) {
                 const button = slot.querySelector("#sell")
 
@@ -233,6 +263,7 @@ function drawInv(container = InvUI, dummy = InvSlot, accessory = InvMined) {
         }
     }
 
+    // not sure why I used 'accessory' as a name but refers to text or some sort of object that is updated on draw
     if (accessory === InvMined) {
         accessory.innerHTML = `Blocks mined: ${PLR.mined}`
     }
@@ -257,24 +288,24 @@ function hit() {
     playSound(Sounds[Target.sound || "generic.ogg"], true)
     Target.hp -= (((DEBUG) && Target.hp)) || PLR.strength
 
-    if (Cancel || (Target.hp <= 0)) {
-        if (Cancel) {
+    if (Cancel || (Target.hp <= 0)) { // Presumably the mining is done
+        if (Cancel) { // Cancel the mining and restore the Block's HP
             Cancel = false
             Target.hp = Target.strength
         }
-        else {
+        else { // Player has mined the block
             playSound(pop)
 
-            if (isNaN(PLR.inventory[Target.name])) PLR.inventory[Target.name] = 0
+            if (isNaN(PLR.inventory[Target.name])) PLR.inventory[Target.name] = 0 // Stupid bug
             PLR.inventory[Target.name]++
             PLR.mined++
 
-            if (PLR.depth < PLR.maxDepth) PLR.depth++
+            if (PLR.minedDepth < PLR.maxDepth) PLR.minedDepth++
 
             refresh()
             saveData()
 
-            curBlock = readBlock(randBlock())
+            curBlock = newBlock(randBlock())
         }
 
         crackBounds = null
@@ -284,15 +315,22 @@ function hit() {
 }
 
 function randBlock() {
-    let result = Blocks[0] // Dirt
+    let result
 
-    for (const b of Blocks) {
-        const r = b[3]
-        if (r != -1 && (PLR.depth >= b[4]) && (randInt(1, r) == 1)) {
+    const d = PLR.depth
+    const l = layerFromDepth(d)
+    const pool = l.getBlocksWithinPool(d) // This magic should pull the blocks discoverable in this layer with considerations to the player's depth
+
+    result = getBlock(l.block) // Layer block
+
+    for (const b of pool) {
+        if (randInt(1, b.rarity) == 1) {
             result = b
             break
         }
     }
+
+    console.log(result.name)
 
     return result
 }
@@ -311,7 +349,7 @@ function mineBlock() {
     }
 }
 
-function drawBlock(nm) {
+function drawBlock(nm) { // Uses canvas
     const data = ((nm.name) && nm) || getBlock(nm)
 
     if (data) {
@@ -411,7 +449,7 @@ PrevPick.addEventListener("mousedown", function() {
     drawPickaxe()
 })
 NextPick.addEventListener("mousedown", function() {
-    if (pickViewing < Pickaxes.length) pickViewing++
+    if (pickViewing < (Pickaxes.length - 1)) pickViewing++
     drawPickaxe()
 })
 EquipPick.addEventListener("mousedown", function() {
@@ -435,6 +473,12 @@ BuyPick.addEventListener("mousedown", function() {
             }
         }
     }
+})
+DepthDown.addEventListener("mousedown", function() {
+    moveDepth(sanify(ToMove.value) || 25)
+})
+DepthUp.addEventListener("mousedown", function() {
+    moveDepth(-sanify(ToMove.value) || -25)
 })
 
 export default { PLR }
