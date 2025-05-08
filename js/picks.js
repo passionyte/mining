@@ -29,6 +29,8 @@ export const Pickaxes = [ // First number = strength (damage per hit), second nu
     new Pickaxe("Emerald", 11, 1500, 6000, "Rare", "pick_emerald.png"),
     new Pickaxe("Diamond", 7, 550, 8000, "Rare", "pick_diamond.png"),
     new Pickaxe("Adurite", 9, 500, 12000, "Epic", "pick_adurite.png"),
+    new Pickaxe("Viridian", 11, 450, 20000, "Epic", "pick_viridian.png"),
+    new Pickaxe("Fire crystal", 14, 330, 40000, "Legendary", "pick_firecrystal.png"),
 ]
 
 export function getPickaxe(n) {

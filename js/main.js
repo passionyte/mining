@@ -422,7 +422,6 @@ step()
 refresh()
 drawPickaxe()
 
-
 // Hardcoded event listeners
 
 CANVAS.addEventListener("mousedown", mineBlock)
