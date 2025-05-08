@@ -330,8 +330,6 @@ function randBlock() {
         }
     }
 
-    console.log(result.name)
-
     return result
 }
 

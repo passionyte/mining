@@ -49,7 +49,6 @@ class Layer {
         for (const b of Blocks) {
             if (b.minDepth) {
                 if (this.isWithin(b.minDepth) && (!b.maxDepth || this.isWithin(b.maxDepth)) && (!d || anyWithin(d, b.minDepth, b.maxDepth))) {
-                    console.log(`${b.name} added to pool`)
                     result.push(b)
                 }
             }
