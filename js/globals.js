@@ -7,9 +7,10 @@ export const CTX = CANVAS.getContext("2d")
 export const FPS = 60
 export const MS_PER_FRAME = (1000 / FPS)
 
-export const DEBUG = true
+export const DEBUG = false
 
-export const Url = "../"
+const useRaw = (document.URL.includes("passionyte.github.io/mining"))
+export const Url = ((!useRaw) && "../") || "https://raw.githubusercontent.com/passionyte/mining/refs/heads/main/"
 
 export function d(id) {
     return document.getElementById(id)
