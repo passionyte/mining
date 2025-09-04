@@ -48,7 +48,8 @@ class Layer {
 
         for (const b of Blocks) {
             if (b.minDepth) {
-                if (this.isWithin(b.minDepth) && (!b.maxDepth || this.isWithin(b.maxDepth)) && (!d || anyWithin(d, b.minDepth, b.maxDepth))) {
+                //if ((this.isWithin(b.minDepth) || (b.minDepth <= this.minDepth)) && (!b.maxDepth || this.isWithin(b.maxDepth)) && (!d || anyWithin(d, b.minDepth, b.maxDepth))) {
+                if (d && d >= b.minDepth && (!b.maxDepth || (d <= b.maxDepth))) {
                     result.push(b)
                 }
             }
@@ -73,13 +74,13 @@ export const Blocks = [
 
     {
         name: "Dirt",
-        strength: 8,
+        strength: 5,
         value: 1,
         style: {color: "rgb(92, 64, 51)", sound: "dirt.ogg"}
     },
     {
         name: "Clay",
-        strength: 10,
+        strength: 8,
         value: 2,
         rarity: 3,
         minDepth: 2,
@@ -93,11 +94,30 @@ export const Blocks = [
         style: {color: "rgb(120, 120, 120)"}
     },
     {
+        name: "Limestone",
+        strength: 10,
+        value: 5,
+        style: {color: "rgb(100, 117, 100)"}
+    },
+    {
+        name: "Granite",
+        strength: 25,
+        value: 6,
+        style: {color: "rgb(255, 150, 150)"}
+    },
+    {
+        name: "Obsidian",
+        strength: 60,
+        value: 10,
+        style: {color: "rgb(30, 0, 30)"}
+    },
+    {
         name: "Copper",
         strength: 16,
         value: 10,
         rarity: 6,
         minDepth: 20,
+        maxDepth: 40,
         style: {color: "rgb(150, 100, 21)"}
     },
     {
@@ -105,7 +125,7 @@ export const Blocks = [
         strength: 20,
         value: 15,
         rarity: 8,
-        minDepth: 41,
+        minDepth: 51,
         style: {color: "rgb(171, 171, 171)"}
     },
     {
@@ -113,7 +133,7 @@ export const Blocks = [
         strength: 18,
         value: 22,
         rarity: 12,
-        minDepth: 41,
+        minDepth: 51,
         style: {color: "rgb(255, 201, 85)"}
     },
     {
@@ -137,8 +157,8 @@ export const Blocks = [
         strength: 15,
         value: 48,
         rarity: 9,
-        minDepth: 22,
-        maxDepth: 41,
+        minDepth: 10,
+        maxDepth: 40,
         style: {color: "rgb(177, 122, 5)"}
     },
     {
@@ -156,14 +176,6 @@ export const Blocks = [
         rarity: 25,
         minDepth: 200,
         style: {color: "rgb(35, 181, 218)"}
-    },
-    {
-        name: "Obsidian",
-        strength: 60,
-        value: 90,
-        rarity: 30,
-        minDepth: 225,
-        style: {color: "rgb(30, 0, 30)"}
     },
     {
         name: "Uranium",
@@ -220,6 +232,15 @@ export const Blocks = [
         style: {color: "rgb(120, 0, 0)"}
     },
     {
+        name: "Mithril",
+        tier: "Rare",
+        strength: 75,
+        value: 2800,
+        rarity: 120,
+        minDepth: 800,
+        style: {color: "rgb(62, 151, 177)"}
+    },
+    {
         name: "Viridian",
         tier: "Epic",
         strength: 100,
@@ -246,7 +267,10 @@ export const Layers = [
     */
 
     new Layer("Dirt", 0, 40),
-    new Layer("Stone", 40)
+    new Layer("Limestone", 40, 50),
+    new Layer("Stone", 50, 500),
+    new Layer("Granite", 500, 1000),
+    new Layer("Obsidian", 1000)
 ]
 
 export const Tiers = { // Simply just colors

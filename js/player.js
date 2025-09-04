@@ -2,12 +2,9 @@
 'use strict'
 
 import { Blocks } from "./blocks.js"
-import { getPickaxe } from "./picks.js"
 import { DEBUG } from "./globals.js"
 
 export class Player {
-    strength
-    delay
     pickaxe
     inventory
     ownedItems
@@ -16,14 +13,10 @@ export class Player {
     depth = 0
     minedDepth = 0
     maxDepth = 100
+    baseStrength = 0
 
     constructor(p = "Wood", i = {}, oi = {Wood: true}, m = 0) {
         this.pickaxe = p
-
-        const pdata = getPickaxe(p)
-
-        this.strength = pdata.strength
-        this.delay = pdata.delay
 
         this.inventory = i
         this.ownedItems = oi

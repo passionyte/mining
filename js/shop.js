@@ -5,7 +5,8 @@ import { PLR } from "./main.js"
 import { DEBUG } from "./globals.js"
 
 export const Items = {
-    ["Upgrade Max Depth"]: {Type: "Upgrade", Cost: 100, Stat: "maxDepth", Inc: 25}
+    ["Upgrade Max Depth"]: {Type: "Upgrade", Cost: 100, Stat: "maxDepth", Inc: 25},
+    ["Upgrade Strength"]: {Type: "Upgrade", Cost: 200, Stat: "baseStrength", Inc: 1}
 }
 
 export function purchase(item) {
@@ -22,7 +23,7 @@ export function purchase(item) {
                     PLR.ownedItems[item] = true
                 }
                 else {
-                    if (PLR[data.Stat]) PLR[data.Stat] += data.Inc
+                    if (PLR[data.Stat] != null) PLR[data.Stat] += data.Inc
                 }
             }
         }

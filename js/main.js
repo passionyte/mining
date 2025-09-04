@@ -12,6 +12,7 @@ import { Items, purchase } from "./shop.js"
 const InvUI = d("inventory")
 const InvSlot = d("slotdummy")
 const InvMined = d("minedcounter")
+const PlrStrength = d("strengthcounter")
 const CurDepth = d("depthcounter")
 
 // Refinery
@@ -50,6 +51,8 @@ const cenY = (h / 2)
 
 export const PLR = new Player()
 
+let pickData
+
 let NOW = performance.now()
 let frame_time = NOW
 
@@ -58,6 +61,7 @@ let Target
 let hitInterval
 let pickViewing = 0
 let Cancel = false
+let cooldown = false
 
 // Cracks
 
@@ -152,7 +156,7 @@ function drawPickaxe(pick) {
         BuyPick.innerText = `Buy for $${data.cost}`
 
         // Pickaxe attributes
-        PickStrength.querySelector("#val").innerHTML = data.strength
+        PickStrength.querySelector("#val").innerHTML = data.power
         PickDelay.querySelector("#val").innerHTML = `${(Math.floor((data.delay / 1000) * 100) / 100)}s`
     }
 }
@@ -161,8 +165,8 @@ function equipPickaxe(pick) {
     if (PLR.ownedItems[pick.name]) {
         Cancel = true
         PLR.pickaxe = pick.name
-        PLR.strength = pick.strength
-        PLR.delay = pick.delay
+
+        pickData = pick
         
         saveData()
     }
@@ -187,6 +191,7 @@ function refresh() {
 
     CurDepth.innerText = `Current depth: ${PLR.depth} / ${PLR.minedDepth} / ${PLR.maxDepth}`
     SellAll.innerText = `Sell All for $${totalValue()}`
+    PlrStrength.innerHTML = `Your strength: ${((pickData.power + PLR.baseStrength) * 60)}`
 }
 
 function loadData() {
@@ -208,6 +213,8 @@ function loadData() {
         n[b.name] = ((typeof(v) == "number") && v) || 0
     }
     PLR.inventory = n
+
+    pickData = getPickaxe(PLR.pickaxe)
 
     refresh()
 }
@@ -281,12 +288,12 @@ function drawTop(text, color) {
     CTX.font = "40px Courier New"
     CTX.textAlign = "center"
     CTX.fillStyle = color || "white"
-    CTX.fillText(text, cenX, (cenY - 200), 400)
+    CTX.fillText(text, cenX, (cenY - 200), 185)
 }
 
 function hit() {
     playSound(Sounds[Target.sound || "generic.ogg"], true)
-    Target.hp -= (((DEBUG) && Target.hp)) || PLR.strength
+    Target.hp -= (((DEBUG) && Target.hp)) || (pickData.power + PLR.baseStrength)
 
     if (Cancel || (Target.hp <= 0)) { // Presumably the mining is done
         if (Cancel) { // Cancel the mining and restore the Block's HP
@@ -306,6 +313,11 @@ function hit() {
             saveData()
 
             curBlock = newBlock(randBlock())
+
+            cooldown = true
+            setTimeout(function() {
+                cooldown = false
+            }, pickData.delay)
         }
 
         crackBounds = null
@@ -334,15 +346,16 @@ function randBlock() {
 }
 
 function mineBlock() {
-    if (!Target && curBlock) {
+    if (!Target && curBlock && !cooldown) {
         Target = curBlock
         Cancel = false
 
-        if (DEBUG || (PLR.strength >= Target.strength)) {
+        const pow = (pickData.power + PLR.baseStrength)
+        if (DEBUG || (pow >= Target.strength)) {
             hit()
         }
         else {
-            hitInterval = setInterval(hit, PLR.delay)
+            hitInterval = setInterval(hit, (1000 - (pow * 60)))
         }
     }
 }

@@ -128,7 +128,7 @@ button {
 }
 
 #equipped {
-    background-color: darkgray;
+    background-color: rgba(100, 200, 100, 0.5);
     color: rgb(0, 255, 0);
     -webkit-text-stroke-color: black;
     -webkit-text-stroke-width: 0.7px;
